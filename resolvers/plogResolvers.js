@@ -17,16 +17,24 @@ module.exports = {
       }
     },
 
-    Users: async (_,args) => {
+    Users: async (parent, args, { user }) => {
       try {
+        if (!user.isLogged) {
+          return {
+            error: true,
+            message: "Not Authorized",
+          };
+        }
+
         const documents = await UserModel.find();
+
         return documents;
       } catch (err) {
         console.log(err);
       }
     },
 
-    Companies: async (_,args) => {
+    Companies: async (_, args) => {
       try {
         const documents = await CompanyModel.find();
         return documents;
@@ -34,7 +42,6 @@ module.exports = {
         console.log(err);
       }
     },
-
 
     PlogById: async (_, { id }) => {
       try {
