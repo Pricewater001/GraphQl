@@ -6,6 +6,7 @@ const UsersSchema = new mongoose.Schema({
   age: Number,
   major: String,
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+  plogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Plog" }]
 });
 
 const User = mongoose.model("User", UsersSchema);

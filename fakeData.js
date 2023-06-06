@@ -3,9 +3,7 @@ const PlogModel = require("./models/plogsModel");
 const CompanyModel = require("./models/companyModel");
 const UserModel = require("./models/usersModel");
 
-
-
-const company = [
+const companyData = [
   {
     _id: new mongoose.Types.ObjectId(),
     id: 1,
@@ -29,15 +27,14 @@ const company = [
   },
 ];
 
-
-const user = [
+const userData = [
   {
     _id: new mongoose.Types.ObjectId(),
     id: 1,
     name: "Hasan",
     age: 26,
     major: "Computer Science",
-    companyId: company[0]._id,
+    companyId: companyData[0]._id,
   },
   {
     _id: new mongoose.Types.ObjectId(),
@@ -45,11 +42,11 @@ const user = [
     name: "Hakim",
     age: 26,
     major: "IT",
-    companyId: company[1]._id,
+    companyId: companyData[1]._id,
   },
 ];
 
-const plog = [
+const plogData = [
   {
     _id: new mongoose.Types.ObjectId(),
     id: 1,
@@ -59,7 +56,7 @@ const plog = [
     country: "Jordan",
     description: "Breaking Breaking Breaking",
     comments: [],
-    userId: user[0]._id,
+    userId: userData[0]._id,
   },
   {
     _id: new mongoose.Types.ObjectId(),
@@ -73,7 +70,7 @@ const plog = [
       { id: 1, content: "yes you are right" },
       { id: 2, content: "No you are Not Wrong" },
     ],
-    userId: user[1]._id,
+    userId: userData[1]._id,
   },
   {
     _id: new mongoose.Types.ObjectId(),
@@ -87,7 +84,7 @@ const plog = [
       { id: 1, content: "First Comment" },
       { id: 2, content: "no this is the first Comment" },
     ],
-    userId: user[0]._id,
+    userId: userData[0]._id,
   },
   {
     _id: new mongoose.Types.ObjectId(),
@@ -101,7 +98,7 @@ const plog = [
       { id: 1, content: "First Comment" },
       { id: 2, content: "no this is the first Comment" },
     ],
-    userId: user[1]._id,
+    userId: userData[1]._id,
   },
   {
     _id: new mongoose.Types.ObjectId(),
@@ -115,7 +112,7 @@ const plog = [
       { id: 1, content: "First Comment" },
       { id: 2, content: "no this is the first Comment" },
     ],
-    userId: user[1]._id,
+    userId: userData[1]._id,
   },
   {
     _id: new mongoose.Types.ObjectId(),
@@ -129,11 +126,47 @@ const plog = [
       { id: 1, content: "First Comment" },
       { id: 2, content: "no this is the first Comment" },
     ],
-    userId: user[0]._id,
+    userId: userData[0]._id,
   },
-  
 ];
 
+const fillRelationships = async () => {
+  try {
+    await Promise.all([
+      CompanyModel.insertMany(companyData),
+      UserModel.insertMany(userData),
+      PlogModel.insertMany(plogData),
+    ]);
+
+    const companies = await CompanyModel.find();
+    const users = await UserModel.find();
+    const plogs = await PlogModel.find();
+
+    for (const plog of plogs) {
+      const user = users.find((user) => user._id.equals(plog.userId));
+      if (user) {
+        user.plogs.push(plog._id);
+        await user.save();
+      }
+    }
+    
+
+    for (const user of users) {
+      const company = companies.find((company) =>
+        company._id.equals(user.companyId)
+      );
+      if (company) {
+        company.users.push(user._id);
+        await company.save();
+      }
+    }
+
+    console.log("Relationships filled successfully.");
+  } catch (error) {
+    console.error("Error filling relationships:", error);
+  }
+};
+
+module.exports = {  fillRelationships };
 
 
-module.exports = { plog, company, user };

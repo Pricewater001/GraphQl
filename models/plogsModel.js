@@ -8,7 +8,7 @@ const PlogsSchema = new mongoose.Schema({
     country:String,
     description: String,
     comments:[],
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
   });
 
   const Plog = mongoose.model('Plog', PlogsSchema);

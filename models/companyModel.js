@@ -5,7 +5,7 @@ const CompanySchema = new mongoose.Schema({
   name: String,
   location: String,
   rank: Number,
-
+  users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
 });
 
 const Company = mongoose.model("Company", CompanySchema);
