@@ -1,65 +1,28 @@
 module.exports = `
-
 type Query {
-  Plogs (filter:PlogFilter ):[Plog],
-  Users:[User],
-  Companies:[Company],
-  PlogById(id: ID): Plog
-}
-
-type Company {
-  id: ID
-  name: String
-  Company: String
-  rank :Int
-}
-
-type Plog {
-  id: ID
-  title: String
-  description: String
-  isTrue: Boolean
-  age: Int
-  country: String
-  comments: [Comment]
-  user: User
-}
-
-input PlogFilter {
-  country: String
-  age: Int
-}
-
-
-
-type User {
-  id: ID
-  name: String
-  age: Int
-  major: String
-  company: Company
-}
-
-type Company {
-  id: ID
-  name: String
-  location: String
-  rank: Int
-}
-
-type Comment {
-  id: ID
-  content: String
-}
-
-input CommentInput {
-  id: ID
-  content: String
+  Books: [Book]
+  Authors: [Author]
 }
 
 type Mutation {
-  createPlog(title: String, description: String, isTrue: Boolean, age: Int, country: String, comments: [CommentInput], userId: ID): Plog
+  createAuthor(name: String, age: Int ): Author
+  createBook(title: String, genre: String,  authorId:String): Book
+  deleteBook(id: ID): Book
 }
 
+type Author {
+  _id: ID
+  name: String
+  age: Int
+  books: [Book] 
+}
+type Book {
+  _id: ID
+  title: String
+  genre: String
+  author : ID
+}
 
 `;
+
+

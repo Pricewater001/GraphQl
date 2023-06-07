@@ -1,73 +1,103 @@
-const PlogModel = require("../models/plogsModel");
-const UserModel = require("../models/usersModel");
-const CompanyModel = require("../models/companyModel");
+const DataLoader = require('dataloader');
+const AuthorModel = require('../models/author.model');
+const BookModel = require('../models/book.model');
+
+const bookLoader = new DataLoader(async (authorIds) => {
+  try {
+    const books = await BookModel.find({ author: { $in: authorIds } });
+    const booksByAuthor = {};
+    
+    books.forEach((book) => {
+      if (booksByAuthor[book.author]) {
+        booksByAuthor[book.author].push(book);
+      } else {
+        booksByAuthor[book.author] = [book];
+      }
+    });
+    
+    const sortedBooks = authorIds.map((authorId) => booksByAuthor[authorId] || []);
+    
+    return sortedBooks;
+  } catch (error) {
+    console.error('Tokken:', error);
+        throw new Error('error in fetching autohere not Authrized');
+  }
+
+});
 
 module.exports = {
   Query: {
-    Plogs: async (_, { filter }) => {
+    Books: async (_, args) => {
       try {
-        const query = filter
-          ? { $or: [{ country: filter.country }, { age: filter.age }] }
-          : {};
-        const documents = await PlogModel.find(query).populate("user");
+        const documents = await BookModel.find();
         return documents;
       } catch (error) {
-        console.error("Error retrieving documents:", error);
-        throw new Error("Failed to retrieve documents.");
+        console.error('Error retrieving documents:', error);
+        throw new Error('Failed to retrieve documents.');
       }
     },
 
-    Users: async (parent, args, { user }) => {
+    Authors: async (parent, args, { user }) => {
       try {
         if (!user.isLogged) {
-          return {
-            error: true,
-            message: "Not Authorized",
-          };
+          throw new Error('Not Authorized');
         }
-
-        const documents = await UserModel.find();
-
+        const documents = await AuthorModel.find();
         return documents;
       } catch (err) {
         console.log(err);
-      }
-    },
-
-    Companies: async (_, args) => {
-      try {
-        const documents = await CompanyModel.find();
-        return documents;
-      } catch (err) {
-        console.log(err);
-      }
-    },
-
-    PlogById: async (_, { id }) => {
-      try {
-        console.log(id);
-        const document = await PlogModel.findOne({ id });
-        console.log(
-          "🚀 ~ file: plogResolvers.js:21 ~ PlogById: ~ document:",
-          document
-        );
-
-        return document;
-      } catch (error) {
-        console.error("Error retrieving document:", error);
-        throw new Error("Failed to retrieve document.");
       }
     },
   },
-
   Mutation: {
-    createPlog: async (_, args) => {
+
+    createAuthor: async (_, { name, age }) => {
       try {
-        const document = await PlogModel.create(args);
-        return document;
+        const newAuthor = await AuthorModel.create({ name, age });
+        return newAuthor;
       } catch (error) {
-        console.error("Error creating document:", error);
-        throw new Error("Failed to create document.");
+        console.error('Error creating author:', error);
+        throw new Error('Failed to create author.');
+      }
+    },
+    createBook: async (_, { title, genre, authorId }) => {
+      try {
+        const book = await BookModel.create({ title, genre, author: authorId });
+        return book;
+      } catch (error) {
+        console.error('Error creating book:', error);
+        throw new Error('Failed to create book.');
+      }
+    },
+
+    deleteBook: async (_, { id }) => {
+      try {
+        const deletedBook = await BookModel.findByIdAndDelete(id);
+        if (!deletedBook) {
+          throw new Error('Book not found.');
+        }
+        return deletedBook;
+      } catch (error) {
+        console.error('Error deleting book:', error);
+        throw new Error('Failed to delete book.');
+      }
+    },
+  },
+  Author: {
+    books: async (parent, args, { user }) => {
+      try {
+
+        if (!user.isLogged) {
+          throw new Error('Not Authorized');
+        }
+        
+        const books = await bookLoader.load(parent._id.toString());
+
+        return books;
+
+      } catch (error) {
+        console.error('Error retrieving books for author:', error);
+        throw new Error('Failed to retrieve books for author.');
       }
     },
   },
